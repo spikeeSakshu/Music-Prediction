@@ -27,10 +27,7 @@ data = pd.read_csv("dataset.csv", header='infer')
 data= shuffle(data, random_state=10)
 
 
-data.corr()
-
 data.describe()
-
 
 # =============================================================================
 # Determing the Features and Labels
@@ -62,16 +59,16 @@ X_train, X_test, y_train, y_test = X[:split], X[split:], y[:split], y[split:]
 # Different Models for Prediction
 # =============================================================================
 
-#LogisticRegression.... 64.93
-model = LogisticRegression(C=1, verbose=2, random_state=10, solver='newton-cg', multi_class='multinomial')
+#LogisticRegression.... 69, 65, 74
+model = LogisticRegression(C=0.9, verbose=2, random_state=10, solver='newton-cg', multi_class='multinomial')
 
-#model=LinearRegression
+#model=LinearRegression()
 
 #Tree ... 66.66
 #model=tree.DecisionTreeClassifier()
 
-#KNN....57.24
-#model=KNeighborsClassifier(algorithm='brute', )
+#KNN....75 76 80  @85%
+#model=KNeighborsClassifier(n_neighbors= 25, algorithm='kd_tree')
 
 #RandomForest...74.59
 #model=RandomForestClassifier(verbose=2,bootstrap=True, random_state=4)
@@ -89,28 +86,54 @@ model=model.fit(X_train,y_train)
 # =============================================================================
 predicted = model.predict(X_test)
 predicted_y= model.predict(X_train)
-print(predicted)
+#print(predicted)
 
-#probability = model.predict_proba(X_test)
-#print(probability)
+#To Calculate Probability
+
+probability = model.predict_proba(X_test)[::,1]
+print(probability)
 
 
 # =============================================================================
 # Calculating the Confusion Matrix
 # =============================================================================
 cnf_matrix = metrics.confusion_matrix(y_test, predicted)
-#cnf_matrix=np.transpose(cnf_matrix)
-print(cnf_matrix)
+print("\n",cnf_matrix)
 
 # =============================================================================
-# Calculating other Scores
+# Calculating Scores
 # =============================================================================
-print("Accuracy: test",round(metrics.accuracy_score(y_test, predicted),2))
-print("Accuracy Train: test",metrics.accuracy_score(y_train, predicted_y))
-print("Precision:",metrics.precision_score(y_test, predicted))
-print("Recall:",metrics.recall_score(y_test, predicted))
-result=metrics.classification_report(y_test, predicted)
-print(result)
 
 d=model.score(X_test,y_test)
-print(d)
+print("\nScore", d)
+
+print("\nAccuracy Test: ",round(metrics.accuracy_score(y_test, predicted),2))
+print("Accuracy Train: ",round(metrics.accuracy_score(y_train, predicted_y),2))
+
+print("\nPrecision:",metrics.precision_score(y_test, predicted))
+print("Recall:",metrics.recall_score(y_test, predicted))
+
+auc = metrics.roc_auc_score(y_test, probability)
+print("AUC", round(auc,3))
+
+result=metrics.classification_report(y_test, predicted)
+print("\n", result)
+
+fpr, tpr, _ = metrics.roc_curve(y_test, probability)
+plt.plot(fpr, tpr)
+plt.show()
+
+
+#W,b = model.coef_, model.intercept_
+
+#plt.scatter(X_train.iloc[::,1], X_train.iloc[::,9], c=y_train.values)
+#ax=plt.gca()
+#ax.autoscale= False
+#xvals= np.array(ax.get_xlim())
+#yvals= -(xvals *W[0][0]+b)/ W[0][1]
+#plt.plot(xvals, yvals)
+#plt.show()
+
+
+
+data.corr()
